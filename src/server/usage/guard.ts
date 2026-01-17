@@ -85,7 +85,7 @@ export async function usageGuardWithDb(input: UsageGuardInput, db: Db): Promise<
     }
   }
 
-  // Improve: FREEは0（利用不可）、SIMPLEは3、PROは20
+  // Improve: FREEは1（月1回）、SIMPLEは3、PROは20
   if (feature === UsageFeature.IMPROVE) {
     const max = ent.limits.improveMonthly;
     if (max === 0) {
@@ -105,7 +105,7 @@ export async function usageGuardWithDb(input: UsageGuardInput, db: Db): Promise<
         reason: "limit",
         code: "LIMIT_EXCEEDED",
         feature: "improveMonthly",
-        message: `${planKey}プランの改善点分析は月${max}回までです。`,
+        message: `${planKey}プランの改善点分析は月${max}回までです。${planKey === PlanKey.FREE ? "SIMPLEプラン（月3回）またはPROプラン（月20回）にアップグレードすると、より多くの分析が可能です。" : ""}`,
         resetAt: nextMonth.toISOString()
       };
     }

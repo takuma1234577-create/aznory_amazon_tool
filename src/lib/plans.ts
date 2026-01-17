@@ -5,7 +5,7 @@ export type Entitlements = {
   limits: {
     scoreMonthly?: number; // null or undefined = unlimited (SIMPLE/PRO)
     superMonthly: number; // 0 = unavailable (FREE)
-    improveMonthly: number; // 0 = unavailable (FREE)
+    improveMonthly: number; // 0 = unavailable, 1+ = available
   };
 };
 
@@ -15,7 +15,7 @@ export const PLAN_ENTITLEMENTS: Record<PlanKey, Entitlements> = {
     limits: {
       scoreMonthly: 5,
       superMonthly: 0, // 利用不可
-      improveMonthly: 0 // 利用不可
+      improveMonthly: 1 // 月1回まで利用可能
     }
   },
   SIMPLE: {
