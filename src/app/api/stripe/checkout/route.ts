@@ -4,10 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { getEnv } from "@/lib/env";
 import { PlanKey } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const requestId = req.headers.get("x-request-id") ?? req.headers.get("x-vercel-id") ?? randomUUID();
+  
   try {
     const userId = await requireUserId();
     const env = getEnv();
@@ -86,12 +89,22 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ url: session.url });
-  } catch (error) {
-    console.error("[stripe][checkout] Error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
+      { url: session.url },
+      { headers: { "x-request-id": requestId } }
+    );
+  } catch (error) {
+    console.error(`[stripe][checkout][${requestId}] Error:`, error);
+    return NextResponse.json(
+      { 
+        ok: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+        requestId
+      },
+      { 
+        status: 500,
+        headers: { "x-request-id": requestId }
+      }
     );
   }
 }
