@@ -1,4 +1,4 @@
-# FITPEAK Analyzer
+# AZONRY　商品ページ改善AIツール
 
 Amazon商品ページAI分析SaaS
 
