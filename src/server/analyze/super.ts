@@ -135,7 +135,13 @@ export async function analyzeSuper(
     } catch (error) {
       console.error("[Super] Failed to analyze main image:", error);
       // 失敗時はLLMのみで継続
-      const analysis = await analyzeMainImageWithLLMOnly(input, mainImage);
+      const analysisResult = await analyzeMainImageWithLLMOnly(input, mainImage);
+      const analysis = analysisResult ?? {
+        listVisibility: 0,
+        visualImpact: 0,
+        instantUnderstanding: 0,
+        cvrBlockers: 0,
+      };
       analyses.main_image = analysis;
       observations.main_image = [];
       breakdown.main_image =
