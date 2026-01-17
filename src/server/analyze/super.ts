@@ -89,10 +89,18 @@ export async function analyzeSuper(
   let mainImage: any = null;
   let subImages: any[] = [];
   
-  if (input.images && typeof input.images === 'object' && 'subs' in input.images) {
-    mainImage = input.images.main || null;
-    subImages = Array.isArray(input.images.subs) ? input.images.subs : [];
+  // Type guard: Check if input.images is an object with 'main' and 'subs' properties
+  if (input.images && 
+      typeof input.images === 'object' && 
+      !Array.isArray(input.images) &&
+      'main' in input.images && 
+      'subs' in input.images) {
+    // Type-safe access: input.images is { main, subs } shape
+    const imagesObj = input.images as { main?: any; subs?: any[] };
+    mainImage = imagesObj.main ?? null;
+    subImages = Array.isArray(imagesObj.subs) ? imagesObj.subs : [];
   } else if (Array.isArray(input.images)) {
+    // input.images is an array
     mainImage = input.images.length > 0 ? input.images[0] : null;
     subImages = input.images.length > 1 ? input.images.slice(1) : [];
   }
