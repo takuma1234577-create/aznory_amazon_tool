@@ -17,14 +17,94 @@ import {
   Shield,
   Clock,
   Download,
+  X,
 } from "lucide-react";
 import { AznoryLogo } from "@/components/aznory-logo";
+
+// 拡張機能インストールハンドラー
+function useInstallExtension() {
+  const [showInstallModal, setShowInstallModal] = useState(false);
+
+  const handleInstall = () => {
+    const storeUrl = process.env.NEXT_PUBLIC_CHROME_WEB_STORE_URL;
+    
+    if (storeUrl) {
+      // Chrome Web StoreのURLが設定されている場合は直接リンク
+      window.open(storeUrl, "_blank");
+    } else {
+      // 開発中の場合は、手動インストール手順を表示するモーダルを開く
+      setShowInstallModal(true);
+    }
+  };
+
+  return { showInstallModal, setShowInstallModal, handleInstall };
+}
+
+// インストール手順モーダル
+function InstallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative mx-4 w-full max-w-2xl rounded-xl border border-border bg-card p-6 shadow-lg">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground hover:bg-muted"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        
+        <h2 className="mb-4 text-2xl font-bold text-foreground">Chrome拡張機能のインストール方法</h2>
+        
+        <div className="space-y-4 text-sm text-foreground">
+          <div>
+            <h3 className="mb-2 font-semibold">方法1: Chrome Web Storeからインストール（推奨）</h3>
+            <ol className="ml-6 list-decimal space-y-1 text-muted-foreground">
+              <li>Chrome Web Storeの拡張機能ページを開く</li>
+              <li>「Chromeに追加」ボタンをクリック</li>
+              <li>確認ダイアログで「拡張機能を追加」をクリック</li>
+            </ol>
+          </div>
+          
+          <div>
+            <h3 className="mb-2 font-semibold">方法2: 開発者モードでインストール</h3>
+            <ol className="ml-6 list-decimal space-y-1 text-muted-foreground">
+              <li>Chromeで <code className="rounded bg-muted px-1.5 py-0.5 text-xs">chrome://extensions/</code> を開く</li>
+              <li>右上の「デベロッパーモード」を有効にする</li>
+              <li>「パッケージ化されていない拡張機能を読み込む」をクリック</li>
+              <li>拡張機能のフォルダを選択</li>
+            </ol>
+          </div>
+        </div>
+        
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={() => window.open("chrome://extensions/", "_blank")}
+            className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            拡張機能ページを開く
+          </button>
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ============================================
 // Hero Section
 // ============================================
 function HeroSection() {
+  const { showInstallModal, setShowInstallModal, handleInstall } = useInstallExtension();
+
   return (
+    <>
+      <InstallModal open={showInstallModal} onClose={() => setShowInstallModal(false)} />
     <section className="relative overflow-hidden bg-background pt-20 pb-32">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
@@ -54,7 +134,10 @@ function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          <button
+            onClick={handleInstall}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
             <Download className="h-5 w-5" />
             Chrome拡張を無料インストール
           </button>
@@ -82,6 +165,7 @@ function HeroSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 
@@ -517,22 +601,27 @@ function FAQSection() {
 // CTA Section
 // ============================================
 function CTASection() {
+  const { showInstallModal, setShowInstallModal, handleInstall } = useInstallExtension();
+
   return (
+    <>
+      <InstallModal open={showInstallModal} onClose={() => setShowInstallModal(false)} />
     <section className="py-24">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <h2 className="text-3xl font-bold text-foreground md:text-4xl">今すぐ商品ページを改善しよう</h2>
         <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">無料で始められます。クレジットカード不要。</p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link
-            href="/api/auth/signin"
+          <button
+            onClick={handleInstall}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Download className="h-5 w-5" />
             Chrome拡張をインストール
-          </Link>
+          </button>
         </div>
       </div>
     </section>
+    </>
   );
 }
 
@@ -540,7 +629,11 @@ function CTASection() {
 // Header Component
 // ============================================
 function Header() {
+  const { showInstallModal, setShowInstallModal, handleInstall } = useInstallExtension();
+
   return (
+    <>
+      <InstallModal open={showInstallModal} onClose={() => setShowInstallModal(false)} />
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <AznoryLogo size="md" showServiceName={true} />
@@ -556,14 +649,15 @@ function Header() {
             FAQ
           </a>
         </nav>
-        <Link
-          href="/api/auth/signin"
+        <button
+          onClick={handleInstall}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           インストール
-        </Link>
+        </button>
       </div>
     </header>
+    </>
   );
 }
 

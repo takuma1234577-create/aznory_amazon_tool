@@ -13,7 +13,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(1),
   NANOBANANA_API_KEY: z.string().min(1),
   EXTENSION_API_KEY: z.string().min(1),
-  EXTENSION_IDS: z.string().optional()
+  EXTENSION_IDS: z.string().optional(),
+  NEXT_PUBLIC_CHROME_WEB_STORE_URL: z.string().url().optional()
 });
 
 export type Env = z.infer<typeof envSchema>;
