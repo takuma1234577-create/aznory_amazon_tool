@@ -118,13 +118,19 @@ export async function analyzeSuper(
       const mainImageUrl = (mainImage as any)?.url;
       if (mainImageUrl) {
         const result = await analyzeMainImage(mainImageUrl);
-        analyses.main_image = result.analysis;
+        const analysis = result.analysis ?? {
+          listVisibility: 0,
+          visualImpact: 0,
+          instantUnderstanding: 0,
+          cvrBlockers: 0,
+        };
+        analyses.main_image = analysis;
         observations.main_image = result.observations;
         breakdown.main_image =
-          result.analysis.listVisibility +
-          result.analysis.visualImpact +
-          result.analysis.instantUnderstanding +
-          result.analysis.cvrBlockers;
+          analysis.listVisibility +
+          analysis.visualImpact +
+          analysis.instantUnderstanding +
+          analysis.cvrBlockers;
       }
     } catch (error) {
       console.error("[Super] Failed to analyze main image:", error);
