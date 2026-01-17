@@ -7,6 +7,7 @@ import { analyzeDeep } from "@/server/analyze/deep";
 import { usageGuardWithDb } from "@/server/usage/guard";
 import { getUsageStatusWithDb } from "@/server/usage/usageStatus";
 import { getEnv } from "@/lib/env";
+import { ZodError } from "zod";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,30 @@ export async function POST_OLD(req: Request) {
       return NextResponse.json({ ok: false, error: "USER_ID_REQUIRED" }, { status: 400 });
     }
 
-    const input = AnalyzeInputSchema.parse(inputData);
+    let input;
+    try {
+      input = AnalyzeInputSchema.parse(inputData);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const requestId = crypto.randomUUID();
+        const isDev = process.env.NODE_ENV === "development";
+        console.error(`[deep-extension][${requestId}] Validation error:`, err.errors);
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "VALIDATION_ERROR",
+            requestId,
+            message: "Invalid input data",
+            ...(isDev && { details: err.errors })
+          },
+          {
+            status: 400,
+            headers: { "x-request-id": requestId }
+          }
+        );
+      }
+      throw err;
+    }
 
     // Usage guard
     const guardResult = await usageGuardWithDb(
