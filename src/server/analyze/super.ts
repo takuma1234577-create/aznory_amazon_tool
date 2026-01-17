@@ -155,7 +155,12 @@ export async function analyzeSuper(
   // ===== 2. タイトル：10点 =====
   const title = (input as any)?.title || "";
   if (title) {
-    const analysis = await analyzeTitle(title, input);
+    const analysisResult = await analyzeTitle(title, input);
+    const analysis = analysisResult ?? {
+      seoStructure: 0,
+      ctrDesign: 0,
+      readability: 0,
+    };
     analyses.title = analysis;
     breakdown.title = analysis.seoStructure + analysis.ctrDesign + analysis.readability;
   } else {
@@ -179,19 +184,33 @@ export async function analyzeSuper(
       
       if (subImageUrls.length > 0) {
         const result = await analyzeSubImages(subImageUrls);
-        analyses.sub_images = result.analysis;
+        const analysis = result.analysis ?? {
+          benefitDesign: 0,
+          worldView: 0,
+          informationDesign: 0,
+          textVisibility: 0,
+          cvrBlockers: 0,
+        };
+        analyses.sub_images = analysis;
         observations.sub_images = result.observations;
         breakdown.sub_images =
-          result.analysis.benefitDesign +
-          result.analysis.worldView +
-          result.analysis.informationDesign +
-          result.analysis.textVisibility +
-          result.analysis.cvrBlockers;
+          analysis.benefitDesign +
+          analysis.worldView +
+          analysis.informationDesign +
+          analysis.textVisibility +
+          analysis.cvrBlockers;
       }
     } catch (error) {
       console.error("[Super] Failed to analyze sub images:", error);
       // 失敗時はLLMのみで継続
-      const analysis = await analyzeSubImagesWithLLMOnly(input, subImages);
+      const analysisResult = await analyzeSubImagesWithLLMOnly(input, subImages);
+      const analysis = analysisResult ?? {
+        benefitDesign: 0,
+        worldView: 0,
+        informationDesign: 0,
+        textVisibility: 0,
+        cvrBlockers: 0,
+      };
       analyses.sub_images = analysis;
       observations.sub_images = [];
       breakdown.sub_images =
@@ -221,7 +240,12 @@ export async function analyzeSuper(
       why: "レビューが0件のため、ネガティブレビューの影響なし",
     };
   } else {
-    const analysis = await analyzeReviewsWithLLM(reviewCount, rating, negativeReviews);
+    const analysisResult = await analyzeReviewsWithLLM(reviewCount, rating, negativeReviews);
+    const analysis = analysisResult ?? {
+      negativeVisibility: 0,
+      negativeSeverity: 0,
+      reassurancePath: 0,
+    };
     analyses.reviews = analysis;
     breakdown.reviews =
       analysis.negativeVisibility +
@@ -241,14 +265,21 @@ export async function analyzeSuper(
   const aplusImageUrls: string[] | undefined = (input as any).aplusImageUrls;
 
   const result = await analyzeAplusBrandWithLLM(aplusInfo, input, aplusImageUrls);
-  analyses.aplus_brand = result.analysis;
+  const analysis = result.analysis ?? {
+    compositionDesign: 0,
+    benefitAppeal: 0,
+    worldView: 0,
+    visualDesign: 0,
+    comparisonReassurance: 0,
+  };
+  analyses.aplus_brand = analysis;
   observations.aplus = result.observations;
   breakdown.aplus_brand =
-    result.analysis.compositionDesign +
-    result.analysis.benefitAppeal +
-    result.analysis.worldView +
-    result.analysis.visualDesign +
-    result.analysis.comparisonReassurance;
+    analysis.compositionDesign +
+    analysis.benefitAppeal +
+    analysis.worldView +
+    analysis.visualDesign +
+    analysis.comparisonReassurance;
 
   const total = Object.values(breakdown).reduce((sum, score) => sum + score, 0);
 
@@ -730,29 +761,6 @@ ${geminiObservations.map((obs, i) => `${i + 1}. ${obs}`).join("\n")}
           textVisibility: Math.max(0, Math.min(5, textSection.score ?? parsed.textVisibility ?? 0)),
           cvrBlockers: Math.max(0, Math.min(5, blockerSection.score ?? parsed.cvrBlockers ?? 0)),
           why: parsed.why || "",
-          // 詳細情報を追加
-          details: {
-            benefitDesign: {
-              reason: benefitSection.reason || "",
-              improvement: benefitSection.improvement_suggestion || "",
-            },
-            worldView: {
-              reason: designSection.reason || "",
-              improvement: designSection.improvement_suggestion || "",
-            },
-            informationDesign: {
-              reason: infoSection.reason || "",
-              improvement: infoSection.improvement_suggestion || "",
-            },
-            textVisibility: {
-              reason: textSection.reason || "",
-              improvement: textSection.improvement_suggestion || "",
-            },
-            cvrBlockers: {
-              reason: blockerSection.reason || "",
-              improvement: blockerSection.improvement_suggestion || "",
-            },
-          },
         },
         observations: geminiObservations,
       };
@@ -880,29 +888,6 @@ ${subImageInfo}
       textVisibility: Math.max(0, Math.min(5, textSection.score ?? parsed.textVisibility ?? 0)),
       cvrBlockers: Math.max(0, Math.min(5, blockerSection.score ?? parsed.cvrBlockers ?? 0)),
       why: parsed.why || "",
-      // 詳細情報を追加
-      details: {
-        benefitDesign: {
-          reason: benefitSection.reason || "",
-          improvement: benefitSection.improvement_suggestion || "",
-        },
-        worldView: {
-          reason: designSection.reason || "",
-          improvement: designSection.improvement_suggestion || "",
-        },
-        informationDesign: {
-          reason: infoSection.reason || "",
-          improvement: infoSection.improvement_suggestion || "",
-        },
-        textVisibility: {
-          reason: textSection.reason || "",
-          improvement: textSection.improvement_suggestion || "",
-        },
-        cvrBlockers: {
-          reason: blockerSection.reason || "",
-          improvement: blockerSection.improvement_suggestion || "",
-        },
-      },
     };
   }
 
@@ -913,13 +898,6 @@ ${subImageInfo}
     textVisibility: 2,
     cvrBlockers: 2,
     why: "LLM分析に失敗したため、デフォルト値を使用",
-    details: {
-      benefitDesign: { reason: "", improvement: "" },
-      worldView: { reason: "", improvement: "" },
-      informationDesign: { reason: "", improvement: "" },
-      textVisibility: { reason: "", improvement: "" },
-      cvrBlockers: { reason: "", improvement: "" },
-    },
   };
 }
 
@@ -1032,21 +1010,6 @@ ${reviewText}
       negativeSeverity: Math.max(0, Math.min(3, severitySection.score ?? parsed.negativeSeverity ?? 3)),
       reassurancePath: Math.max(1, Math.min(3, reassuranceSection.score ?? parsed.reassurancePath ?? 3)),
       why: parsed.why || "レビュー情報から明確なネガティブ要素が確認できないため、満点とします",
-      // 詳細情報を追加
-      details: {
-        negativeVisibility: {
-          reason: visibilitySection.reason || "画像内に★1-2が見当たらないため満点とします",
-          improvement: visibilitySection.improvement_suggestion || "現状維持で問題ありません。",
-        },
-        negativeSeverity: {
-          reason: severitySection.reason || "品質に関する批判テキストが存在しないため満点",
-          improvement: severitySection.improvement_suggestion || "なし",
-        },
-        reassurancePath: {
-          reason: reassuranceSection.reason || "ネガティブ要素自体が存在しないため満点",
-          improvement: reassuranceSection.improvement_suggestion || "なし",
-        },
-      },
     };
   }
 
@@ -1056,20 +1019,6 @@ ${reviewText}
     negativeSeverity: 3,
     reassurancePath: 3,
     why: "レビュー情報から明確なネガティブ要素が確認できないため、満点とします",
-    details: {
-      negativeVisibility: {
-        reason: "画像内に★1-2が見当たらないため満点とします",
-        improvement: "現状維持で問題ありません。",
-      },
-      negativeSeverity: {
-        reason: "品質に関する批判テキストが存在しないため満点",
-        improvement: "なし",
-      },
-      reassurancePath: {
-        reason: "ネガティブ要素自体が存在しないため満点",
-        improvement: "なし",
-      },
-    },
   };
 }
 
