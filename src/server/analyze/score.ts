@@ -80,13 +80,13 @@ export async function calculateScore(input: AnalyzeInput): Promise<ScoreResult> 
     // 全角スペース（\u3000）と半角スペースで分割
     const rawTokens = cleanedTitle
       .split(/[\s\u3000]+/)
-      .map(token => token.trim())
-      .filter(token => token.length > 0);
+      .map((token: string) => token.trim())
+      .filter((token: string) => token.length > 0);
     
     // 3. 各トークンをフィルタ
     const particles = ["の", "は", "に", "を", "と", "で", "も", "が", "へ", "や", "から", "まで", "より"];
     
-    const keywords = rawTokens.filter(token => {
+    const keywords = rawTokens.filter((token: string) => {
       // 空は除外（既にfilterで除外済み）
       
       // 記号だけ/数字だけは除外
