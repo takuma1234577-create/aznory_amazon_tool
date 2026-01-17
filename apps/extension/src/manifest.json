@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "FITPEAK Analyzer",
+  "version": "1.0.0",
+  "description": "Amazon商品ページAI分析ツール",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.amazon.co.jp/*",
+    "https://www.amazon.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["styles/*.css", "images/*.png"],
+      "matches": ["https://www.amazon.co.jp/*", "https://www.amazon.com/*"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.amazon.co.jp/*",
+        "https://www.amazon.com/*"
+      ],
+      "js": ["contentScript.js"],
+      "css": ["styles/style.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "fitpeak-analyzer-extension",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && npm run verify:dist",
+    "verify:dist": "node scripts/verify-dist.mjs"
+  },
+  "_comment": {
+    "build": "vite build を実行します。TypeScriptファイル(.ts)をJavaScript(.js)にコンパイルし、popup.htmlをコピーし、manifest.jsonをdistフォルダにコピーします。出力先は dist フォルダです。",
+    "dev": "vite build --watch を実行します。ファイル変更を監視し、自動的に再ビルドします。"
+  },
+  "dependencies": {
+    "@radix-ui/react-accordion": "1.2.2",
+    "@radix-ui/react-dialog": "1.1.4",
+    "@radix-ui/react-label": "2.1.1",
+    "@radix-ui/react-progress": "1.1.1",
+    "@radix-ui/react-separator": "1.1.1",
+    "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.454.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/chrome": "^0.0.268",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.0"
+  }
+}

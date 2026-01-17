@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanKey {
+  FREE
+  SIMPLE
+  PRO
+}
+
+enum UsageFeature {
+  SCORE
+  DEEP
+  SUPER
+  IMPROVE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts Account[]
+  sessions Session[]
+
+  customer    StripeCustomer?
+  usageEvents UsageEvent[]
+  analyzeRuns AnalyzeRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model StripeCustomer {
+  id               String @id @default(cuid())
+  userId           String @unique
+  stripeCustomerId String @unique
+
+  // Cached entitlement data (source of truth is Stripe)
+  planKey            PlanKey   @default(FREE)
+  subscriptionId     String?
+  subscriptionStatus String?
+  currentPeriodEnd   DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UsageEvent {
+  id        String       @id @default(cuid())
+  userId    String
+  feature   UsageFeature
+  asin      String?
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, feature, createdAt])
+  @@index([userId, asin, createdAt])
+}
+
+model AnalyzeRun {
+  id      String       @id @default(cuid())
+  userId  String
+  feature UsageFeature
+  asin    String?
+
+  scoreTotal  Int?
+  payloadJson String?
+  resultJson  String?
+
+  shareToken String?   @unique
+  sharedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([shareToken])
+}
